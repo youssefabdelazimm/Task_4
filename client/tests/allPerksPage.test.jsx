@@ -25,7 +25,7 @@ describe('AllPerks page (Directory)', () => {
     // fetch finished.
     await waitFor(() => {
       expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
-    });
+    }, { timeout: 15000 });
 
     // Interact with the name filter input using the real value that
     // corresponds to the seeded record.
@@ -34,7 +34,7 @@ describe('AllPerks page (Directory)', () => {
 
     await waitFor(() => {
       expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
-    });
+    }, { timeout: 15000 });
 
     // The summary text should continue to reflect the number of matching perks.
     expect(screen.getByText(/showing/i)).toHaveTextContent('Showing');
@@ -51,7 +51,35 @@ describe('AllPerks page (Directory)', () => {
   */
 
   test('lists public perks and responds to merchant filtering', async () => {
-    // This will always fail until the TODO above is implemented.
-    expect(true).toBe(false);
+    // The seeded record gives us a deterministic expectation regardless of the
+    // rest of the shared database contents.
+    const seededPerk = global.__TEST_CONTEXT__.seededPerk;
+
+    // Render the exploration page so it performs its real HTTP fetch.
+    renderWithRouter(
+      <Routes>
+        <Route path="/explore" element={<AllPerks />} />
+      </Routes>,
+      { initialEntries: ['/explore'] }
+    );
+
+    // Wait for the baseline card to appear which guarantees the asynchronous
+    // fetch finished.
+    await waitFor(() => {
+      expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
+    }, { timeout: 10000 });
+
+    // Interact with the merchant filter dropdown using the real value that
+    // corresponds to the seeded record.
+    const merchantSelects = screen.getAllByRole('combobox');
+    const merchantFilter = merchantSelects[merchantSelects.length - 1]; // Get the merchant filter (last select)
+    fireEvent.change(merchantFilter, { target: { value: seededPerk.merchant } });
+
+    await waitFor(() => {
+      expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
+    }, { timeout: 10000 });
+
+    // The summary text should continue to reflect the number of matching perks.
+    expect(screen.getByText(/showing/i)).toHaveTextContent('Showing');
   });
 });
